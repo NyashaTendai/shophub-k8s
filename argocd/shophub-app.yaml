@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shophub
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/NyashaTendai/shophub-k8s.git
+    targetRevision: main
+    path: apps/shophub
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shophub
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
