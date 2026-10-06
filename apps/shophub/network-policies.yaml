@@ -1,0 +1,51 @@
+# 1. Default deny: block all incoming traffic to every pod in this namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: shophub
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# 2. Anyone may reach the web app on 8080
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-ingress
+  namespace: shophub
+spec:
+  podSelector:
+    matchLabels:
+      tier: app
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8080
+---
+# 3. Only the app (and the migration job) may reach Postgres on 5432
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-db-from-app
+  namespace: shophub
+spec:
+  podSelector:
+    matchLabels:
+      tier: data
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: app
+        - podSelector:
+            matchLabels:
+              job-name: shophub-migrate
+      ports:
+        - protocol: TCP
+          port: 5432
